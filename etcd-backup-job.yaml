@@ -1,0 +1,24 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: etcd-backup-job
+spec:
+  template:
+    spec:
+      containers: 
+      - name: etcd-backup 
+        image: bitnami/etcd       # etcdctl image 불러오기
+        command: ["etcdctl"]
+        args: ["backup", "--data-dir", "/bitnami/etcd/data", "--backup-dir", "/backup"]
+        volumeMounts:
+        - name: etcd-data         # etcd 데이터 디렉토리
+          mountPath: /bitnami/etcd/data
+        - name: backup-volume     # 백업 파일 저장 디렉토리 (경로: /backup)
+          mountPath: /backup
+      restartPolicy: Never
+      volumes:
+      - name: etcd-data
+        emptyDir: {}
+      - name: backup-volume
+        emptyDir: {}
+  backoffLimit: 4
