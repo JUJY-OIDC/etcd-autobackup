@@ -5,20 +5,18 @@ metadata:
 spec:
   template:
     spec:
+      securityContext: #root 권한
+        runAsUser: 0
       containers: 
       - name: etcd-backup 
         image: bitnami/etcd       # etcdctl image 불러오기
-        command: ["etcdctl"]
-        args: ["backup", "--data-dir", "/bitnami/etcd/data", "--backup-dir", "/backup"]
+        command: ["sh", "/scripts/test.sh"]
         volumeMounts:
-        - name: etcd-data         # etcd 데이터 디렉토리
-          mountPath: /bitnami/etcd/data
-        - name: backup-volume     # 백업 파일 저장 디렉토리 (경로: /backup)
-          mountPath: /backup
+        - name: script-volume       
+          mountPath: /scripts
       restartPolicy: Never
       volumes:
-      - name: etcd-data
-        emptyDir: {}
-      - name: backup-volume
-        emptyDir: {}
-  backoffLimit: 4
+      - name: script-volume
+        configMap:
+          name: etcd-backup-configmap
+  backoffLimit: 3
