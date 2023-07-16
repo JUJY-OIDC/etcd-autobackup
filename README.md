@@ -24,3 +24,14 @@
 - Deployment를 통한 watch-api 감지 애플리케이션 배포
 - Deployment에 Singleton Pattern을 적용
 - Singleton Pattern :  동시에 하나의 어플리케이션 인스턴스만 활성
+
+## 👩🏻‍💻 Contributors
+<table>
+  <tr>
+    <td align="center"><a href="https://github.com/juyoung810"><img src="https://avatars.githubusercontent.com/u/57140735?v=4" width="100px;" alt=""/><br /><sub><b>김주영</b></sub></a><br /><a>👩🏻‍🎤</a></td>
+    <td align="center"><a href="https://github.com/na3150"><img src="https://avatars.githubusercontent.com/u/64996121?v=4" width="100px;" alt=""/><br /><sub><b>성나영</b></sub></a><br /><a>👩🏻‍🎤</a></td>
+    <td align="center"><a href="https://github.com/ziwooda"><img src="https://avatars.githubusercontent.com/u/70079416?v=4" width="100px;" alt=""/><br /><sub><b>정지우</b></sub></a><br /><a>👩🏻‍🎤</a></td>
+    <td align="center"><a href="https://github.com/yugyeongh"><img src="https://avatars.githubusercontent.com/u/72396865?v=4" width="100px;" alt=""/><br /><sub><b>현유경</b></sub></a><br /><a>👩🏻‍🎤</a></td>
+   
+  </tr>
+  </table>
