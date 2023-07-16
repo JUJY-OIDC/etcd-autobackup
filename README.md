@@ -12,7 +12,7 @@
 - `etcd-backup-configmap.yaml`: etcdctl 명령을 실행하고, snapshot을 oracle storage에 저장
 - `etcd-backup-job.yaml`: configmap을 통해 저장된, snapshot 및 backup 작업을 수행
 
-![image]()
+![image](https://user-images.githubusercontent.com/72396865/253788061-7a5217d1-7b71-45cd-9a10-fee687964684.png)
 
 ### What is Watch-API?
 - Kubernetes API 서버와의 실시간 상호작용을 위한 메커니즘
