@@ -17,7 +17,7 @@
 ## 👀 What is Watch-API?
 - Kubernetes API 서버와의 실시간 상호작용을 위한 메커니즘
 - K8S Events-API vs Watch-API
-> Events API :  클러스터에서 발생하는 이벤트에 대한 정보를 조회하는 API, 실시간보다는 과거의 이벤트 조회에 적합
+> Events API :  클러스터에서 발생하는 이벤트에 대한 정보를 조회하는 API, 실시간보다는 과거의 이벤트 조회에 적합<br>
 > Watch-API: Kubernetes API 서버와 실시간으로 통신 및 리소스의 변경을 감지하고 모니터링
 
 ## 🏠 Singleton Pattern
