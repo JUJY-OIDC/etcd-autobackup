@@ -14,9 +14,14 @@ spec:
         volumeMounts:
         - name: script-volume       
           mountPath: /scripts
+        - name: pv-cert
+          mountPath: /cert
       restartPolicy: Never
       volumes:
       - name: script-volume
         configMap:
-          name: etcd-backup-configmap
+          name: etcd-backup-configmap-oci
+      - name : pv-cert
+        persistentVolumeClaim:
+          claimName: pvc-cert
   backoffLimit: 3
