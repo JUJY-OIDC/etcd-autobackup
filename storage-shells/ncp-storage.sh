@@ -1,11 +1,5 @@
 #!/bin/bash
 
-#======================= set ENV =================================================
-export AWS_ACCESS_KEY_ID="AKIA4DLHR6AAHGI4F46B"
-export AWS_SECRET_ACCESS_KEY="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"
-export AWS_REGION="ap-northeast-2"
-export BUCKET_NAME="jujy-etcd-backup-01"
-
 #======================= install aws-cli =========================================
 # unzip 설치 
 # Function to check if a command exists
