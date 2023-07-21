@@ -1,0 +1,20 @@
+{
+  "Rules": [
+    {
+      "Filter": {
+        "Prefix": "/"
+      },
+      "Status": "Enabled",
+      "Transitions": [
+        {
+          "Days": 60,
+          "StorageClass": "GLACIER"
+        }
+      ],
+      "Expiration": {
+        "Days": 180
+      },
+      "ID": "aws-s3-rule"
+    }
+  ]
+}
