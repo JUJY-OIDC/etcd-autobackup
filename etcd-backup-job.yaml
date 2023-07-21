@@ -5,6 +5,7 @@ metadata:
 spec:
   template:
     spec:
+      ttlSecondsAfterFinished: 600
       securityContext: #root 권한
         runAsUser: 0
       containers: 
