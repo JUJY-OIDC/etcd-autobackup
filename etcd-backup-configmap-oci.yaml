@@ -10,7 +10,7 @@ data:
     export ETCDCTL_API=3
     export ETCD_ENDPOINT=
 
-    
+
     #authentication
 
 
@@ -22,7 +22,16 @@ data:
 
     #backup to the oci storage
 
+    ## install oci cli slient mode
+    curl -L -O https://raw.githubusercontent.com/oracle/oci-cli/master/scripts/install/install.sh
+    chmod +x install.sh
+    ./install.sh --accept-all-defaults
+    echo "::add-path::/home/runner/bin"
+    alias oci='/home/ubuntu/bin/oci'
+    echo "######################"
+    echo "#"oci version = $(oci --version)"#"
+    echo "######################"
+
 
     #delete backup file
     #rm -rf etcd-backup.db
-    
