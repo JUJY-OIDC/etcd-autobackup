@@ -82,11 +82,18 @@ EOF
 chmod 600 ~/.aws/config ~/.aws/credentials
 
 #======================= create s3 =========================================
-aws s3api create-bucket --bucket "$BUCKET_NAME" --region "$AWS_REGION" --create-bucket-configuration LocationConstraint=$AWS_REGION
+if aws s3 ls "s3://$BUCKET_NAME" --region "$AWS_REGION" 2>&1 | grep -q 'NoSuchBucket'; then
+  echo "Creating S3 bucket: $BUCKET_NAME"
+  aws s3api create-bucket --bucket "$BUCKET_NAME" --region "$AWS_REGION"
 
-# Check the response status
-if [ $? -eq 0 ]; then
+  if [ $? -eq 0 ]; then
     echo "S3 bucket '$BUCKET_NAME' created successfully."
-else
+  else
     echo "Failed to create S3 bucket '$BUCKET_NAME'. Please check the error message."
+  fi
+
+else
+  echo "Bucket already exists: $BUCKET_NAME"
 fi
+#======================= Apply s3 lifecycle =========================================
+aws s3api put-bucket-lifecycle-configuration --bucket $BUCKET_NAME --lifecycle-configuration file://aws-lifecycle.json
