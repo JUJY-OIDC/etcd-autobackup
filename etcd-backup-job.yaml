@@ -3,6 +3,7 @@ kind: Job
 metadata:
   name: etcd-backup-job
 spec:
+  ttlSecondsAfterFinished: 100
   template:
     spec:
       ttlSecondsAfterFinished: 600
