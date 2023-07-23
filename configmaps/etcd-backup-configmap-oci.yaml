@@ -7,12 +7,13 @@ data:
     #!/bin/sh
 
     ######set env
+    echo "Setting ENV."
     export ETCDCTL_API=3
     export ETCD_ENDPOINT=10.0.0.145
 
 
     ######oci configure ; automation using expect 
-    echo "Configuring oci-cli"
+    echo "Configuring OCI-CLI."
 
     expect -c "
     spawn $HOME/bin/oci setup config
@@ -42,12 +43,14 @@ data:
 
 
     #take a snapshot
+    echo "Taking Snapshot."
     echo "ETCD_ENDPOINT=${ETCD_ENDPOINT}"
-    ETCDCTL_API=3 etcdctl snapshot save --endpoints=$ETCD_ENDPOINT --cacert=/cert/ca.cert  --cert=/cert/server.crt  --key=/cert/server.key  etcd-backup.db --debug
+    ETCDCTL_API=3 etcdctl snapshot save --endpoints=$ETCD_ENDPOINT --cacert=/cert/ca.crt  --cert=/cert/server.crt  --key=/cert/server.key  etcd-backup.db --debug
     ETCDCTL_API=3 etcdctl --write-out=table snapshot status etcd-backup.db
 
 
     #backup to the oci storage
+    echo "Upload Snapshot to Oracle Storage."
     timestamp=$(date -u +"%Y-%m-%dT%H:%M")
     $HOME/bin/oci os object put --bucket-name etcd-backup --file etcd-backup.db --name "etcd-backup-${timestamp}.db"
     
