@@ -1,6 +1,6 @@
-import time, yaml
-from kubernetes import client, config, watch, utils
-from kubernetes import client as kubernetes_client
+import os
+from kubernetes import client, config, watch
+from kubernetes.stream import stream
 
 # k8s 연결 인증 정보 불러오기
 config.load_kube_config()   # 쿠버네티스 클러스터 연결
@@ -8,35 +8,13 @@ api_client = client.CoreV1Api()   # k8s api_client 객체 생성
 batch_api = client.BatchV1Api()  # k8s batch api_client 객체 생성
 
 w_api = watch.Watch()   # watch api 객체 생성
-k8s_client = kubernetes_client.ApiClient()  # load kubernetes client
+ns = os.getenv('NAMESPACE', 'default')  # job을 배포할 ns
 
-def update_job_name(job_manifest):
-    timestamp = str(int(time.time()))
-    job_manifest['metadata']['name'] = f"etcd-backup-job-{timestamp}"
+# watch API로 변경 사항 감지
+for event in w_api.stream(api_client.list_pod_for_all_namespaces):     # 모든 네임스페이스의 파드에 대한 리소스 변경 감지
+    resource = event['object']
+    if event['type'] in ['ADDED', 'DELETED', 'MODIFIED']:    # 리소스 변경 시의 로직
+        print("Resource changed: {0} {1}".format(event['type'], resource.metadata.name))
 
-def watch_etcd_changes(ns):
-    job_yaml_file="etcd-backup-job.yaml"
-
-    # Job을 Kubernetes 클러스터에 배포
-    with open(job_yaml_file) as f:
-        job_manifest = yaml.safe_load(f)
-
-    update_job_name(job_manifest)
-
-    # create pods with yaml file
-    utils.create_from_yaml(k8s_client, yaml_objects=[job_manifest], namespace=ns)
-    print("Job Deployed in namespace {}".format(ns))
-
-def main():
-    namespaces = [ns.metadata.name for ns in api_client.list_namespace().items]
-    for namespace in namespaces:
-        for event in w_api.stream(api_client.list_pod_for_all_namespaces):
-            time.sleep(7)
-            resource = event['object']
-            if event['type'] in ['ADDED', 'DELETED', 'MODIFIED', 'UPDATED']:
-                print("Resource changed: {0} {1}".format(event['type'], resource.metadata.name))
-
-            watch_etcd_changes(namespace)
-
-if __name__=='__main__':
-    main()
+        # job = client.V1Job(api_version="batch/v1", kind="Job", metadata=client.V1ObjectMeta(name="nginx"))
+        # batch_api.create_namespaced_job(namespace=ns, body=job)
