@@ -1,0 +1,53 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: etcd-backup-configmap-oci
+data:
+  test.sh: |
+    #!/bin/sh
+
+    ######set env
+    export ETCDCTL_API=3
+    export ETCD_ENDPOINT=10.0.0.145
+
+
+    ######oci configure ; automation using expect 
+    echo "Configuring oci-cli"
+
+    expect -c "
+    spawn $HOME/bin/oci setup config
+
+    expect \"Enter a location for your config\"
+    send -- \"$HOME/.oci/config\r\"
+
+    expect \"Enter a user OCID\"
+    send -- \"$USER_OCID\r\"
+
+    expect \"Enter a tenancy OCID\"
+    send -- \"$TENANCY_OCID\r\"
+
+    expect \"Enter a region\"
+    send -- \"$BUCKET_REGION\r\"
+
+    expect \"Do you want to generate a new API Signing RSA key pair?\"
+    send -- \"n\r\"
+
+    expect \"Enter the location of your private key file\"
+    send -- \"$API_KEY_PATH\r\"
+
+    expect eof
+    "
+
+    echo "Successfully configured oci-cli"
+
+
+    #take a snapshot
+    echo "ETCD_ENDPOINT=${ETCD_ENDPOINT}"
+    ETCDCTL_API=3 etcdctl snapshot save --endpoints=$ETCD_ENDPOINT --cacert=/cert/ca.cert  --cert=/cert/server.crt  --key=/cert/server.key  etcd-backup.db --debug
+    ETCDCTL_API=3 etcdctl --write-out=table snapshot status etcd-backup.db
+
+
+    #backup to the oci storage
+    timestamp=$(date -u +"%Y-%m-%dT%H:%M")
+    $HOME/bin/oci os object put --bucket-name etcd-backup --file etcd-backup.db --name "etcd-backup-${timestamp}.db"
+    

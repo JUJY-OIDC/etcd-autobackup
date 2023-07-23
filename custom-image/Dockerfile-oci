@@ -1,0 +1,18 @@
+# base image
+FROM ubuntu:20.04
+
+# avoid interaction
+ARG DEBIAN_FRONTEND=noninteractive
+
+# working directory
+WORKDIR /
+
+# copy script & install package 
+COPY image-custom-script.sh /
+
+# custom script
+RUN apt-get update && apt-get install -y git golang curl etcd-client expect
+
+RUN curl -L -O https://raw.githubusercontent.com/oracle/oci-cli/master/scripts/install/install.sh && chmod +x install.sh
+
+RUN ./install.sh --accept-all-defaults
