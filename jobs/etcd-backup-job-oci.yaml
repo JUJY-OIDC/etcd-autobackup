@@ -15,19 +15,19 @@ spec:
         volumeMounts:
         - name: script-volume
           mountPath: /scripts
-        - name: pv-cert
+        - name: cert-hostpath
           mountPath: /cert
-        - name: pv-oci-key
+        - name: key-hostpath
           mountPath: /oci-key
       restartPolicy: Never
       volumes:
       - name: script-volume
         configMap:
           name: etcd-backup-configmap-oci
-      - name : pv-cert
-        persistentVolumeClaim:
-          claimName: pvc-cert
-      - name : pv-oci-key
-        persistentVolumeClaim:
-          claimName: pvc-oci-key
+      - name : cert-hostpath
+        hostPath:
+          path: /etc/kubernetes/pki/etcd/
+      - name : key-hostpath
+        hostPath: 
+          path: /oci-key
   backoffLimit: 3
