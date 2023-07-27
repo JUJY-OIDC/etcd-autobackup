@@ -6,6 +6,12 @@ spec:
   ttlSecondsAfterFinished: 600
   template:
     spec:
+      nodeSelector:
+        node-role.kubernetes.io/control-plane: ''
+      tolerations:
+        - key: node-role.kubernetes.io/control-plane
+          operator: Exists
+          effect: NoSchedule
       securityContext: #root 권한
         runAsUser: 0
       containers:
