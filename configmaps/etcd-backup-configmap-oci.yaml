@@ -6,12 +6,6 @@ data:
   test.sh: |
     #!/bin/sh
 
-    ######set env
-    echo "Setting ENV."
-    export ETCDCTL_API=3
-    export ETCD_ENDPOINT=10.0.0.145
-
-
     ######oci configure ; automation using expect 
     echo "Configuring OCI-CLI."
 
@@ -22,19 +16,19 @@ data:
     send -- \"$HOME/.oci/config\r\"
 
     expect \"Enter a user OCID\"
-    send -- \"$USER_OCID\r\"
+    send -- \"{{ .Values.oci.user_ocid }}\r\"
 
     expect \"Enter a tenancy OCID\"
-    send -- \"$TENANCY_OCID\r\"
+    send -- \"{{ .Values.oci.tenancy_ocid }}\r\"
 
     expect \"Enter a region\"
-    send -- \"$BUCKET_REGION\r\"
+    send -- \"{{ .Values.oci.bucket_region }}\r\"
 
     expect \"Do you want to generate a new API Signing RSA key pair?\"
     send -- \"n\r\"
 
     expect \"Enter the location of your private key file\"
-    send -- \"$API_KEY_PATH\r\"
+    send -- \"{{ .Values.oci.api_key_path }}\r\"
 
     expect eof
     "
@@ -44,13 +38,14 @@ data:
 
     #take a snapshot
     echo "Taking Snapshot."
-    echo "ETCD_ENDPOINT=${ETCD_ENDPOINT}"
-    ETCDCTL_API=3 etcdctl snapshot save --endpoints=$ETCD_ENDPOINT --cacert=/cert/ca.crt  --cert=/cert/server.crt  --key=/cert/server.key  etcd-backup.db --debug
+    echo "ETCD_ENDPOINT={{ .Values.etcd.endpoint }}"
+    ETCDCTL_API=3 etcdctl snapshot save --endpoints={{ .Values.etcd.endpoint }} --cacert=/cert/ca.crt  --cert=/cert/server.crt  --key=/cert/server.key  etcd-backup.db --debug
     ETCDCTL_API=3 etcdctl --write-out=table snapshot status etcd-backup.db
 
 
     #backup to the oci storage
     echo "Upload Snapshot to Oracle Storage."
+    BUCKET_NAME='jujy-etcd-backup-{{ .Values.oci.bucket_region }}'
     timestamp=$(date -u +"%Y-%m-%dT%H:%M")
-    $HOME/bin/oci os object put --bucket-name etcd-backup --file etcd-backup.db --name "etcd-backup-${timestamp}.db"
+    $HOME/bin/oci os object put --bucket-name $BUCKET_NAME --file etcd-backup.db --namespace {{ .Values.oci.namespace }}--name "etcd-backup-${timestamp}.db"
     
