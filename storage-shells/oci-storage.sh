@@ -8,28 +8,43 @@ export API_KEY_PATH=
 export BUCKET_NAME=
 
 
+# Function to check if a command exists
+command_exists() {
+  command -v "$1" >/dev/null 2>&1
+}
+
 
 #======================= install oci-cli ===============================================
-curl -L -O https://raw.githubusercontent.com/oracle/oci-cli/master/scripts/install/install.sh
-chmod +x install.sh
-# silent 모드로 설치 실행
-./install.sh --accept-all-defaults
-
-echo "::add-path::/home/runner/bin"
-# alias 로 oci 명령어로 실행할 수 있도록 설정
-alias oci='$HOME/bin/oci'
-# 설치 확인
-echo "######################"
-echo "# oci version = $(oci --version) #"
-echo "######################"
-
+# Check if OCI CLI is already installed
+if command -v oci >/dev/null 2>&1; then
+    echo "OCI CLI is already installed. Skipping installation."
+else
+    echo "OCI CLI not found. Installing..."
+    # Install OCI CLI using the package manager (apt)
+    sudo apt update
+    curl -L -O https://raw.githubusercontent.com/oracle/oci-cli/master/scripts/install/install.sh
+    chmod +x install.sh
+    # execute installation with silent mode
+    ./install.sh --accept-all-defaults
+    echo "::add-path::/home/runner/bin"
+    # check installation
+    echo "######################"
+    echo "# oci version = $($HOME/bin/oci --version) #"
+    echo "######################"
+fi
 
 
 #======================= install expect ================================================
-sudo apt-get install expect -y
+# Check the package manager and install expect accordingly
+if command -v expect >/dev/null 2>&1; then
+    echo "expect is installed."
+else
+    echo "expect is not installed. Installing..."
+    sudo apt update
+    sudo apt install expect -y
+fi
 
-
-
+  
 #======================= oci configure ; automation using expect =======================
 expect -c "
 spawn $HOME/bin/oci setup config
@@ -56,6 +71,12 @@ expect eof
 "
 
 
-
 #======================= create oci storage =============================================
 $HOME/bin/oci os bucket create --compartment-id $TENANCY_OCID --name $BUCKET_NAME
+
+# Check the response status
+if [ $? -eq 0 ]; then
+    echo "oci bucket '$BUCKET_NAME' created successfully."
+else
+    echo "Failed to create oci bucket '$BUCKET_NAME'. Please check the error message."
+fi
