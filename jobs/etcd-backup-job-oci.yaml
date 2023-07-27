@@ -35,5 +35,5 @@ spec:
             path: /etc/kubernetes/pki/etcd/
         - name: key-hostpath
           hostPath:
-            path: /oci-key
+            path: /root/oci-key
   backoffLimit: 3
