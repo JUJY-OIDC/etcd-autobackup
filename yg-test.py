@@ -33,7 +33,7 @@ def main():
     # 사용자가 제외하고자 하는 네임스페이스 리스트
     excluded_ns = ['calico-apiserver', 'calico-system', 'tigera-operator']
     
-    api_client.list_namespaced_
+
     for namespace in namespaces:
         print('------------------------')
         print(namespace)
