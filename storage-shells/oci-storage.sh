@@ -1,12 +1,5 @@
 #!/bin/bash
 
-#======================= set env =======================================================
-export USER_OCID=
-export TENANCY_OCID=
-export BUCKET_REGION=
-export API_KEY_PATH=
-export BUCKET_NAME=
-
 
 # Function to check if a command exists
 command_exists() {
@@ -53,26 +46,28 @@ expect \"Enter a location for your config\"
 send -- \"$HOME/.oci/config\r\"
 
 expect \"Enter a user OCID\"
-send -- \"$USER_OCID\r\"
+send -- \"{{ .Values.oci.user_ocid }}\r\"
 
 expect \"Enter a tenancy OCID\"
-send -- \"$TENANCY_OCID\r\"
+send -- \"{{ .Values.oci.tenancy_ocid }}\r\"
 
 expect \"Enter a region\"
-send -- \"$BUCKET_REGION\r\"
+send -- \"{{ .Values.oci.bucket_region }}\r\"
 
 expect \"Do you want to generate a new API Signing RSA key pair?\"
 send -- \"n\r\"
 
 expect \"Enter the location of your private key file\"
-send -- \"$API_KEY_PATH\r\"
+send -- \"{{ .Values.oci.api_key_path }}\r\"
 
 expect eof
 "
 
 
 #======================= create oci storage =============================================
-$HOME/bin/oci os bucket create --compartment-id $TENANCY_OCID --name $BUCKET_NAME
+BUCKET_NAME="jujy-etcd-backup-{{ .Values.oci.bucket_region }}"
+
+$HOME/bin/oci os bucket create --compartment-id {{ .Values.oci.tenancy_ocid }} --name $BUCKET_NAME
 
 # Check the response status
 if [ $? -eq 0 ]; then
