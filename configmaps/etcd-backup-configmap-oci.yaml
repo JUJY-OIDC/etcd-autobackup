@@ -1,3 +1,5 @@
+{{- if eq .Values.cloudProvider "oci" }}
+
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -49,3 +51,4 @@ data:
     timestamp=$(date -u +"%Y-%m-%dT%H:%M")
     $HOME/bin/oci os object put --bucket-name $BUCKET_NAME --file etcd-backup.db --namespace {{ .Values.oci.namespace }}--name "etcd-backup-${timestamp}.db"
     
+{{- end }}
