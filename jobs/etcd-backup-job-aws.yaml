@@ -16,15 +16,15 @@ spec:
         runAsUser: 0
       containers:
         - name: etcd-backup
-          image: juya/jujy-etcd-aws:laste
+          image: na3150/jujy-etcd-custom-aws
           command: ['sh', '/scripts/test.sh']
           volumeMounts:
             - name: script-volume
               mountPath: /scripts
             - name: cert-hostpath #etcd certification
               mountPath: /cert
-            - name: pv-oci-key
-              mountPath: /oci-key
+            - name: aws-lifecycle
+              mountPath: /etcd-autobackup/storage-shells
       restartPolicy: Never
       volumes:
         - name: script-volume
@@ -32,8 +32,8 @@ spec:
             name: etcd-backup-configmap-aws
         - name: cert-hostpath
           hostPath:
-            path: { { .Values.etcd.cert_path } }
-        - name: pv-oci-key
-          persistentVolumeClaim:
-            claimName: pvc-oci-key
+            path: /etc/kubernetes/pki/etcd/
+        - name: aws-lifecycle
+          hostPath:
+            path: /root/etcd-autobackup/storage-shells/
   backoffLimit: 3

@@ -8,12 +8,13 @@ data:
 
     #set env
     export ETCDCTL_API=3
-    export ETCD_ENDPOINT=10.0.0.145
+    export ETCD_ENDPOINT=10.0.0.6:2379
 
-    export AWS_ACCESS_KEY_ID="AKIA4DLHR6AAARIOHEU6"
-    export AWS_SECRET_ACCESS_KEY="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"
+    export AWS_ACCOUNT_ID=""
+    export AWS_ACCESS_KEY_ID=""
+    export AWS_SECRET_ACCESS_KEY=""
     export AWS_REGION="ap-northeast-2"
-    export BUCKET_NAME="jujy-etcd-backup-$AWS_REGION"
+    export BUCKET_NAME="jujy-etcd-backup-$AWS_ACCOUNT_ID"
 
 
     #== aws config ==
@@ -40,8 +41,7 @@ data:
     #== create s3 ==
     if aws s3 ls "s3://$BUCKET_NAME" --region "$AWS_REGION" 2>&1 | grep -q 'NoSuchBucket'; then
       echo "Creating S3 bucket: $BUCKET_NAME"
-      aws s3api create-bucket --bucket "$BUCKET_NAME" --region "$AWS_REGION"
-
+      aws s3 mb s3://$BUCKET_NAME --region "$AWS_REGION"
       if [ $? -eq 0 ]; then
         echo "S3 bucket '$BUCKET_NAME' created successfully."
       else
@@ -52,14 +52,13 @@ data:
       echo "Bucket already exists: $BUCKET_NAME"
     fi
     #== Apply s3 lifecycle ==
-    aws s3api put-bucket-lifecycle-configuration --bucket $BUCKET_NAME --lifecycle-configuration file://aws-lifecycle.json
-
+    aws s3api put-bucket-lifecycle-configuration --bucket $BUCKET_NAME --lifecycle-configuration file://etcd-autobackup/storage-shells/aws-lifecycle.json
 
     #take a snapshot
     echo "ETCD_ENDPOINT=$ETCD_ENDPOINT"
-    ETCDCTL_API=3 etcdctl snapshot save --endpoints=$ETCD_ENDPOINT --cacert=/cert/ca.cert  --cert=/cert/server.crt  --key=/cert/server.key  etcd-backup.db --debug
+    ETCDCTL_API=3 etcdctl snapshot save --endpoints=$ETCD_ENDPOINT --cacert=/cert/ca.crt  --cert=/cert/server.crt  --key=/cert/server.key  etcd-backup.db --debug
     ETCDCTL_API=3 etcdctl --write-out=table snapshot status etcd-backup.db
 
     #backup to the oci storage
     timestamp=$(date -u +"%Y-%m-%dT%H:%M")
-    aws s3 cp /etcd-backup.db s3://$BUCKET_NAME/
+    aws s3 cp /etcd-backup.db s3://$BUCKET_NAME/etcd-backup-${timestamp}.db
