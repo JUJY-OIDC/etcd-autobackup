@@ -1,0 +1,54 @@
+{{- if eq .Values.cloudProvider "oci" }}
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: etcd-backup-configmap-oci
+data:
+  test.sh: |
+    #!/bin/sh
+
+    ######oci configure ; automation using expect 
+    echo "Configuring OCI-CLI."
+
+    expect -c "
+    spawn $HOME/bin/oci setup config
+
+    expect \"Enter a location for your config\"
+    send -- \"$HOME/.oci/config\r\"
+
+    expect \"Enter a user OCID\"
+    send -- \"{{ .Values.oci.user_ocid }}\r\"
+
+    expect \"Enter a tenancy OCID\"
+    send -- \"{{ .Values.oci.tenancy_ocid }}\r\"
+
+    expect \"Enter a region\"
+    send -- \"{{ .Values.oci.bucket_region }}\r\"
+
+    expect \"Do you want to generate a new API Signing RSA key pair?\"
+    send -- \"n\r\"
+
+    expect \"Enter the location of your private key file\"
+    send -- \"{{ .Values.oci.api_key_path }}\r\"
+
+    expect eof
+    "
+
+    echo "Successfully configured oci-cli"
+
+
+    #take a snapshot
+    echo "Taking Snapshot."
+    echo "ETCD_ENDPOINT={{ .Values.etcd.endpoint }}"
+    ETCDCTL_API=3 etcdctl snapshot save --endpoints={{ .Values.etcd.endpoint }} --cacert=/cert/ca.crt  --cert=/cert/server.crt  --key=/cert/server.key  etcd-backup.db --debug
+    ETCDCTL_API=3 etcdctl --write-out=table snapshot status etcd-backup.db
+
+
+    #backup to the oci storage
+    echo "Upload Snapshot to Oracle Storage."
+    BUCKET_NAME='jujy-etcd-backup-{{ .Values.oci.bucket_region }}'
+    timestamp=$(date -u +"%Y-%m-%dT%H:%M")
+    $HOME/bin/oci os object put --bucket-name $BUCKET_NAME --file etcd-backup.db --namespace {{ .Values.oci.namespace }}--name "etcd-backup-${timestamp}.db"
+    
+{{- end }}

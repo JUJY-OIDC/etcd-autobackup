@@ -1,11 +1,5 @@
 #!/bin/bash
 
-#======================= set ENV =================================================
-export AWS_ACCESS_KEY_ID=""
-export AWS_SECRET_ACCESS_KEY=""
-export AWS_REGION=""
-export BUCKET_NAME="jujy-etcd-backup-$AWS_REGION"
-
 #======================= install aws-cli =========================================
 # unzip 설치 
 # Function to check if a command exists
@@ -59,7 +53,6 @@ fi
 echo "aws version:"
 aws --version
 
-
 #======================= aws config =========================================
 # directory 생성
 mkdir -p ~/.aws
@@ -81,19 +74,12 @@ EOF
 # 권한 부여  
 chmod 600 ~/.aws/config ~/.aws/credentials
 
-#======================= create s3 =========================================
-if aws s3 ls "s3://$BUCKET_NAME" --region "$AWS_REGION" 2>&1 | grep -q 'NoSuchBucket'; then
-  echo "Creating S3 bucket: $BUCKET_NAME"
-  aws s3api create-bucket --bucket "$BUCKET_NAME" --region "$AWS_REGION"
+#======================= create s3 w/ ncp endpoint ============================
+aws --endpoint-url=https://kr.object.gov-ncloudstorage.com s3api create-bucket --bucket $BUCKET_NAME
 
-  if [ $? -eq 0 ]; then
+# Check the response status
+if [ $? -eq 0 ]; then
     echo "S3 bucket '$BUCKET_NAME' created successfully."
-  else
-    echo "Failed to create S3 bucket '$BUCKET_NAME'. Please check the error message."
-  fi
-
 else
-  echo "Bucket already exists: $BUCKET_NAME"
+    echo "Failed to create S3 bucket '$BUCKET_NAME'. Please check the error message."
 fi
-#======================= Apply s3 lifecycle =========================================
-aws s3api put-bucket-lifecycle-configuration --bucket $BUCKET_NAME --lifecycle-configuration file://aws-lifecycle.json

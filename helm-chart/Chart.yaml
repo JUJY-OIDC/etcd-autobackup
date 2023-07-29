@@ -1,0 +1,4 @@
+apiVersion: v2
+name: etcd-autobackup  # 차트의 이름
+version: 1.0.0  # 차트의 버전
+description: A Helm chart for etcd-autobackup service  # 차트의 간단한 설명
