@@ -21,7 +21,7 @@ spec:
           volumeMounts:
             - name: script-volume
               mountPath: /scripts
-            - name: pv-cert
+            - name: cert-hostpath #etcd certification
               mountPath: /cert
             - name: pv-oci-key
               mountPath: /oci-key
@@ -30,9 +30,9 @@ spec:
         - name: script-volume
           configMap:
             name: etcd-backup-configmap-aws
-        - name: pv-cert
-          persistentVolumeClaim:
-            claimName: pvc-cert
+        - name: cert-hostpath
+          hostPath:
+            path: { { .Values.etcd.cert_path } }
         - name: pv-oci-key
           persistentVolumeClaim:
             claimName: pvc-oci-key
