@@ -16,15 +16,13 @@ spec:
         runAsUser: 0
       containers:
         - name: etcd-backup
-          image: na3150/jujy-etcd-custom-aws
+          image: juya/jujy-etcd-custom-aws
           command: ['sh', '/scripts/test.sh']
           volumeMounts:
             - name: script-volume
               mountPath: /scripts
             - name: cert-hostpath #etcd certification
               mountPath: /cert
-            - name: aws-lifecycle
-              mountPath: /etcd-autobackup/storage-shells
       restartPolicy: Never
       volumes:
         - name: script-volume
@@ -33,7 +31,4 @@ spec:
         - name: cert-hostpath
           hostPath:
             path: /etc/kubernetes/pki/etcd/
-        - name: aws-lifecycle
-          hostPath:
-            path: /root/etcd-autobackup/storage-shells/
   backoffLimit: 3

@@ -5,6 +5,8 @@ FROM ubuntu:20.04
 ARG DEBIAN_FRONTEND=noninteractive
 
 # working directory
+COPY storage-shells/aws-lifecycle.json /root/aws-lifecycle.json
+
 WORKDIR /
 
 # custom script

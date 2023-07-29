@@ -56,7 +56,7 @@ data:
     fi
 
     #== Apply s3 lifecycle ==
-    aws --endpoints=$ENDPOINT s3api put-bucket-lifecycle-configuration --bucket $BUCKET_NAME --lifecycle-configuration file://etcd-autobackup/storage-shells/aws-lifecycle.json
+    aws --endpoints=$ENDPOINT s3api put-bucket-lifecycle-configuration --bucket $BUCKET_NAME --lifecycle-configuration file://root/aws-lifecycle.json
 
 
 
