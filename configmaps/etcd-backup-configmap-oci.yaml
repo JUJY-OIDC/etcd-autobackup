@@ -9,8 +9,7 @@ data:
     #!/bin/sh
 
     ######oci configure ; automation using expect 
-    echo "Configuring OCI-CLI."
-
+    echo "Configuring OCI-CLI..."
     expect -c "
     spawn $HOME/bin/oci setup config
 
@@ -34,21 +33,43 @@ data:
 
     expect eof
     "
+    echo "Successfully Configured OCI-CLI"
 
-    echo "Successfully configured oci-cli"
 
+    ######take a snapshot
+    echo "Taking Snapshot..."
 
-    #take a snapshot
-    echo "Taking Snapshot."
     echo "ETCD_ENDPOINT={{ .Values.etcd.endpoint }}"
     ETCDCTL_API=3 etcdctl snapshot save --endpoints={{ .Values.etcd.endpoint }} --cacert=/cert/ca.crt  --cert=/cert/server.crt  --key=/cert/server.key  etcd-backup.db --debug
     ETCDCTL_API=3 etcdctl --write-out=table snapshot status etcd-backup.db
 
+    edho "Snapshot Taken Successfully."
 
-    #backup to the oci storage
-    echo "Upload Snapshot to Oracle Storage."
-    BUCKET_NAME='jujy-etcd-backup-{{ .Values.oci.bucket_region }}'
+
+    ######create oci bucket 
+    # Check if the bucket exists
+    BUCKET_NAME="jujy-etcd-backup-{{ .Values.oci.bucket_region }}"
+    if $HOME/bin/oci os bucket get --bucket-name "$BUCKET_NAME" 2>&1 | grep -q 'BucketNotFound'; then
+      echo "Creating OCI bucket '$BUCKET_NAME'..."
+      $HOME/bin/oci os bucket create --compartment-id {{ .Values.oci.tenancy_ocid }} --name "$BUCKET_NAME"
+      # Check the response status
+      if [ $? -eq 0 ]; then
+          echo "OCI bucket '$BUCKET_NAME' created successfully."
+      else
+          echo "Failed to create OCI bucket '$BUCKET_NAME'. Please check the error message."
+          exit 1
+      fi
+    else
+       echo "OCI bucket '$BUCKET_NAME' already exists. Skipping bucket creation."
+    fi
+
+
+    ######backup to the oci storage
+    echo "Uploading Snapshot to Oracle Storage..."
     timestamp=$(date -u +"%Y-%m-%dT%H:%M")
     $HOME/bin/oci os object put --bucket-name $BUCKET_NAME --file etcd-backup.db --namespace {{ .Values.oci.namespace }}--name "etcd-backup-${timestamp}.db"
-    
+
+    echo "Snapshot Uploaded a to OCI Bucket Successfully."    
+
+
 {{- end }}
