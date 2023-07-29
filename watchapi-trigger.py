@@ -39,29 +39,25 @@ def jobTriggerEvent(ns, resource):
 
 # trigger job when Deployment object is deployed
 def watchEtcdChanges(namespace, resource, event):
-    if "etcd-backup-job" in resource.metadata.name:
-        return
-
     if event in ["ADDED", "DELETED"]:
         print(f"{resource.metadata.name} has been {event}")
 
         jobTriggerEvent(namespace, resource)
 
 def main():
-    namespaces = [ns.metadata.name for ns in api_client.list_namespace().items]
+    custom_ns = 'etcd-autobackup'
+    # namespaces = [ns.metadata.name for ns in api_client.list_namespace().items]
 
     # 사용자가 제외하고자 하는 네임스페이스 리스트
-    excluded_ns = ["calico-apiserver", "calico-system", "tigera-operator"]
+    excluded_ns = ["calico-apiserver", "calico-system", "tigera-operator", "kube-system"]
 
-    for namespace in namespaces:
-        if namespace not in excluded_ns:
-            for event in w_api.stream(getattr(api_client, "list_RESOURCE_for_all_namespaces")):
-                time.sleep(5)
-                resource = event['object']
-                event_type = event['type']
-                
-                if ("etcd-backup-job" in resource.metadata.name) or (resource.metadata.namespace in excluded_ns): continue
-                watchEtcdChanges(namespace, resource, event_type)
+    for event in w_api.stream(getattr(api_client, "list_RESOURCE_for_all_namespaces")):
+        time.sleep(5)
+        resource = event['object']
+        event_type = event['type']
+        
+        if ("etcd-backup-job" in resource.metadata.name) or (resource.metadata.namespace in excluded_ns): continue
+        watchEtcdChanges(custom_ns, resource, event_type)
 
 if __name__=='__main__':
     main()
