@@ -1,7 +1,11 @@
 #Fill in the blanks according to the applicable environment
+#===================================== etcd-autobackup service ===============================
+app:
+  name: etcd-autobackup service
+  version: 1.0.0
 
 
-#===================================== cloudProvider =====================================
+#===================================== cloudProvider =========================================
 #Select the cloudProvider where the etcd backup snapshot will be saved.
 #Uncomment what you want. default is oracle cloud.
 cloudProvider: oci
@@ -17,11 +21,13 @@ oci:
   bucket_region: 
   namespace: 
 
+
 #Fill in below, if you choosed Amazon Web Service.
 aws:
   access_key_id:
   secret_access_key:
   region:
+
 
 
 #Fill in below, if you choosed Naver Cloud Platform.
@@ -35,7 +41,6 @@ ncp:
 etcd:
   ##Directory that including ca.crt, server.crt, server.key. Please write the path from the master node. Please write an absolute path.
   cert_path: /etc/kubernetes/pki/etcd/  
-  #endpoint of etcd. This must be Private IP.
+  #endpoint of etcd with port. This must be Private IP.
   endpoint: 
-
 
