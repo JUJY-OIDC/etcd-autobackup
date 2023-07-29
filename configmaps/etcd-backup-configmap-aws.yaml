@@ -1,3 +1,5 @@
+{{- if eq .Values.cloudProvider "aws" }}
+
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -62,3 +64,5 @@ data:
     #backup to the oci storage
     timestamp=$(date -u +"%Y-%m-%dT%H:%M")
     aws s3 cp /etcd-backup.db s3://$BUCKET_NAME/etcd-backup-${timestamp}.db
+
+{{- end }}
