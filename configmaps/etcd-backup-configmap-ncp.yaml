@@ -7,34 +7,64 @@ data:
     #!/bin/sh
 
     #set env
-    export ncloud_access_key_id = 
-    export ncloud_secret_access_key = 
-    export ncloud_api_url = https://ncloud.apigw.ntruss.com
-    export ENDPOINT = 
+    export ETCDCTL_API=3
+    export ETCD_ENDPOINT=10.0.0.6:2379
+
+    export NCP_ACCESS_KEY_ID=
+    export NCP_SECRET_ACCESS_KEY=
+    export NCP_ENDPOINT_URL=https://kr.object.ncloudstorage.com
+    export NCP_REGION="kr"
+    export BUCKET_NAME="jujy-etcd-backup-$NCP_REGION"
 
 
-    #install ncp-cli
-    wget https://www.ncloud.com/api/support/download/5/65
-    unzip 65
-    cd cli_linux/
-    chmod 755 -R *
-    echo "[DEFAULT]" > ~/.ncloud/configure
-    echo "ncloud_access_key_id = $ncloud_access_key_id" >> ~/.ncloud/configure
-    echo "ncloud_secret_access_key = $ncloud_secret_access_key" >> ~/.ncloud/configure
+     #== aws config ==
+    # directory 생성
+    mkdir -p ~/.aws
 
-    
-    #authentication
+    # configure 파일 생성
+    cat > ~/.aws/config << EOF
+    [default]
+    region = $NCP_REGION
+    output = json
+    EOF
+
+    # credential file 생성
+    cat > ~/.aws/credentials << EOF
+    [default]
+    aws_access_key_id = $NCP_ACCESS_KEY_ID
+    aws_secret_access_key = $NCP_SECRET_ACCESS_KEY
+    EOF
+
+    # 권한 부여
+    chmod 600 ~/.aws/config ~/.aws/credentials
+
+    #== Create s3 ==
+    # 버킷 조회
+    existing_bucket=$(aws --endpoint-url=$NCP_ENDPOINT_URL s3api list-buckets --query "Buckets[?Name=='$BUCKET_NAME'].Name" --output text)
+
+    # 버킷이 존재하는지 확인
+    if [ "$existing_bucket" = "$BUCKET_NAME" ]; then
+    echo "버킷 '$BUCKET_NAME'이(가) 이미 존재합니다."
+    else
+      # 존재하지 않는 경우 버킷 생성
+      if aws --endpoint-url=$NCP_ENDPOINT_URL s3api create-bucket --bucket "$BUCKET_NAME" --region $NCP_REGION 2>/dev/null; then
+        echo "버킷 '$BUCKET_NAME'을(를) 생성했습니다."
+      else
+        echo "오류: 버킷 '$BUCKET_NAME'을(를) 생성하지 못했습니다." >&2
+        exit 1
+      fi
+    fi
+
+    #== Apply s3 lifecycle ==
+    aws --endpoints=$ENDPOINT s3api put-bucket-lifecycle-configuration --bucket $BUCKET_NAME --lifecycle-configuration file://etcd-autobackup/storage-shells/aws-lifecycle.json
+
 
 
     #take a snapshot
-    echo "ENDPOINT=$ENDPOINT"
-    etcdctl snapshot save --endpoints=$ENDPOINT etcd-backup.db
-    etcdctl --write-out=table snapshot status etcd-backup.db
+    echo "ETCD_ENDPOINT=$ETCD_ENDPOINT"
+    ETCDCTL_API=3 etcdctl snapshot save --endpoints=$ETCD_ENDPOINT --cacert=/cert/ca.crt  --cert=/cert/server.crt  --key=/cert/server.key  etcd-backup.db --debug
+    ETCDCTL_API=3 etcdctl --write-out=table snapshot status etcd-backup.db
 
-
-    #backup to the cloud
-
-
-    #delete backup file
-    #rm -rf etcd-backup.db
-    
+    #backup to the ncp storage
+    timestamp=$(date -u +"%Y-%m-%dT%H:%M")
+    aws --endpoint-url=$NCP_ENDPOINT_URL s3 cp /etcd-backup.db s3://$BUCKET_NAME/etcd-backup-${timestamp}.db
