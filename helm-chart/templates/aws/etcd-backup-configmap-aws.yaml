@@ -8,17 +8,6 @@ data:
   test.sh: |
     #!/bin/sh
 
-    #set env
-    export ETCDCTL_API=3
-    export ETCD_ENDPOINT=10.0.0.6:2379
-
-    export AWS_ACCOUNT_ID=""
-    export AWS_ACCESS_KEY_ID=""
-    export AWS_SECRET_ACCESS_KEY=""
-    export AWS_REGION="ap-northeast-2"
-    export BUCKET_NAME="jujy-etcd-backup-$AWS_ACCOUNT_ID"
-
-
     #== aws config ==
     # directory 생성
     mkdir -p ~/.aws
@@ -26,24 +15,26 @@ data:
     # configure 파일 생성
     cat > ~/.aws/config << EOF
     [default]
-    region = $AWS_REGION
+    region = {{ .Values.aws.region }}
     output = json
     EOF
 
     # credential file 생성
     cat > ~/.aws/credentials << EOF
     [default]
-    aws_access_key_id = $AWS_ACCESS_KEY_ID
-    aws_secret_access_key = $AWS_SECRET_ACCESS_KEY
+    aws_access_key_id = {{ .Values.aws.access_key_id }}
+    aws_secret_access_key = {{ .Values.aws.secret_access_key }}
     EOF
 
     # 권한 부여
     chmod 600 ~/.aws/config ~/.aws/credentials
 
     #== create s3 ==
-    if aws s3 ls "s3://$BUCKET_NAME" --region "$AWS_REGION" 2>&1 | grep -q 'NoSuchBucket'; then
+    BUCKET_NAME='jujy-etcd-backup-{{ .Values.aws.region }}'
+    
+    if aws s3 ls "s3://$BUCKET_NAME" --region {{ .Values.aws.region }} 2>&1 | grep -q 'NoSuchBucket'; then
       echo "Creating S3 bucket: $BUCKET_NAME"
-      aws s3 mb s3://$BUCKET_NAME --region "$AWS_REGION"
+      aws s3 mb s3://$BUCKET_NAME --region {{ .Values.aws.region }}
       if [ $? -eq 0 ]; then
         echo "S3 bucket '$BUCKET_NAME' created successfully."
       else
@@ -57,11 +48,11 @@ data:
     aws s3api put-bucket-lifecycle-configuration --bucket $BUCKET_NAME --lifecycle-configuration file://etcd-autobackup/storage-shells/aws-lifecycle.json
 
     #take a snapshot
-    echo "ETCD_ENDPOINT=$ETCD_ENDPOINT"
-    ETCDCTL_API=3 etcdctl snapshot save --endpoints=$ETCD_ENDPOINT --cacert=/cert/ca.crt  --cert=/cert/server.crt  --key=/cert/server.key  etcd-backup.db --debug
+    echo 'ETCD_ENDPOINT={{ .Values.etcd.endpoint }}'
+    ETCDCTL_API=3 etcdctl snapshot save --endpoints={{ .Values.etcd.endpoint }} --cacert=/cert/ca.crt  --cert=/cert/server.crt  --key=/cert/server.key  etcd-backup.db --debug
     ETCDCTL_API=3 etcdctl --write-out=table snapshot status etcd-backup.db
 
-    #backup to the aws storage
+    #backup to the oci storage
     timestamp=$(date -u +"%Y-%m-%dT%H:%M")
     aws s3 cp /etcd-backup.db s3://$BUCKET_NAME/etcd-backup-${timestamp}.db
 
