@@ -49,8 +49,7 @@ data:
     fi
 
     #== Apply s3 lifecycle ==
-    aws --endpoints=$ENDPOINT s3api put-bucket-lifecycle-configuration --bucket $BUCKET_NAME --lifecycle-configuration file://root/aws-lifecycle.json
-
+    aws  --endpoint-url=$NCP_ENDPOINT_URL s3api put-bucket-lifecycle-configuration --bucket $BUCKET_NAME --lifecycle-configuration file://root/aws-lifecycle.json
 
 
     #take a snapshot
