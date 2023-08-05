@@ -19,7 +19,7 @@ spec:
         runAsUser: 0
       containers:
         - name: etcd-backup
-          image: juya/jujy-etcd-custom-aws
+          image: juya/jujy-etcd-custom-ncp
           command: ['sh', '/scripts/test.sh']
           volumeMounts:
             - name: script-volume
