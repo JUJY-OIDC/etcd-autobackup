@@ -1,0 +1,18 @@
+FROM python:3.8-slim
+
+WORKDIR /
+
+COPY configmaps /configmaps
+COPY custom-image /custom-image
+COPY jobs /jobs
+COPY . .
+
+RUN pip3 install --upgrade pip \
+    && pip3 install kubernetes
+
+RUN sed 's/PROVIDER/ncp/g; s/RESOURCE/pod/g' watchapi/corev1-watchapi-template.py > watchapi/pod.py \
+    && sed 's/PROVIDER/ncp/g; s/RESOURCE/deployment/g' watchapi/appsv1-watchapi-template.py > watchapi/deploy.py \
+    && sed 's/PROVIDER/ncp/g; s/RESOURCE/config_map/g' watchapi/corev1-watchapi-template.py > watchapi/configmap.py \
+    && sed 's/PROVIDER/ncp/g; s/RESOURCE/service/g' watchapi/corev1-watchapi-template.py > watchapi/service.py
+
+CMD ["watchapi/watchapi.sh"]
