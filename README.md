@@ -1,37 +1,140 @@
-# ETCD Auto Backup Service
+# ETCD-AutoBackup
 
-## 📢 프로젝트 소개
-- etcd는 클러스터의 상태 정보 관리하기 위한 데이터 저장소로, 클러스터의 안정성과 신뢰성을 유지하는데 중요한 역할
-- 기존 etcd backup service에서 나아가 auto-backup 기능과 버전 관리 기능을 제공
-- 기존 etcd가 일정 시간이 지난 후 삭제되는 기능을 보완하여, 자주 접근되는 hot 데이터와 오래된 cold 데이터를 이중화 구조로 외부 저장소에 저장
-- Helm 패키징을 통해 사용자의 편리성을 높여 낮은 진입 장벽 제공
+![image-20230806054900608](https://raw.githubusercontent.com/na3150/typora-img/main/uPic/image-20230806054900608.png)
 
-## 🧬 Architecture
-- `watch-events.py`: watch api 감지
-- `etcd-deployment.yaml`: watch api 프로그램 이미지를 실행
-- `etcd-backup-configmap.yaml`: etcdctl 명령을 실행하고, snapshot을 oracle storage에 저장
-- `etcd-backup-job.yaml`: configmap을 통해 저장된, snapshot 및 backup 작업을 수행
+<h3 align="center">ETCD-AutoBackup</h3>
+<p align="center">Auto-Backup Service of ETCD snapshot data according to Kubernetes cluster update<br>
+  <br>
+ <a href="https://github.com/JUJY-OIDC/etcd-autobackup-helm-repo">Helm Chart</a>
+    ·
+    <a href="https://github.com/JUJY-OIDC/etcd-autobackup">Code Repo</a>
+</p>
+<br>
 
-![image](https://user-images.githubusercontent.com/72396865/253788061-7a5217d1-7b71-45cd-9a10-fee687964684.png)
+## 📢  About ETCD-AutoBackup Service
+- ETCD is a data store for managing cluster state information.
+- ETCD plays an important role in maintaining the stability and reliability of the cluster.
+- If ETCD data is stored in a cloud environment to prevent accidents, the risk of data loss can be reduced.
+- ETCD-AutoBackup Service uses etcd's [Watch API](https://etcd.io/docs/v3.2/learning/api/#watch-api) to detect data changes and schedule jobs that create and save snapshots.
+<br>
 
-## 👀 What is Watch-API?
-- Kubernetes API 서버와의 실시간 상호작용을 위한 메커니즘
-- K8S Events-API vs Watch-API
-> Events API :  클러스터에서 발생하는 이벤트에 대한 정보를 조회하는 API, 실시간보다는 과거의 이벤트 조회에 적합<br>
-> Watch-API: Kubernetes API 서버와 실시간으로 통신 및 리소스의 변경을 감지하고 모니터링
+## 🌟 Architecture
 
-## 🏠 Singleton Pattern
-- Deployment를 통한 watch-api 감지 애플리케이션 배포
-- Deployment에 Singleton Pattern을 적용
-- Singleton Pattern :  동시에 하나의 어플리케이션 인스턴스만 활성
+| File                          | Description                                                  |
+| ------------------------------------ | ------------------------------------------------------------ | 
+| `watch-events.py`        | Deploy job by detecting cluster changes through the watch api |
+| `etcd-deployment.yaml`           | Run `watch-events.py` code in singleton pattern | 
+| `etcd-backup-configmap.yaml`           | Save script data that runs etcdctl commands and saves snapshots to cloud storage. |
+| `etcd-backup-job.yaml`           | Execute stored shell script via configmap |
+
+<br>
+
+![image](https://github.com/JUJY-OIDC/.github/assets/64996121/00583855-a508-49dc-b0fb-19af3d2a1a8d)
+
+
+
+<br>
+
+## 👀 Features
+
+**☁️ Save snapshot data at Cloud**
+
+- Save the snapshot data in a cloud provider of your choice.
+- Provided vendor : AWS, OCI, NCP
+
+**🧸 User-friendly**
+
+- Provides ease of use through Helm packaging.
+- Just fill in the `values.yaml` according to the user.
+
+**🕹️ Versioning**
+
+- Seperation of hot data(60 days, archiving) and cold data(180 days, deletion) using lifecycle policy. 
+- Currently only available in AWS.
+
+**🎈 Singleton Pattern**
+- One application must be running at a time so that jobs are not duplicated (snapshots are not duplicated).
+- Adopt Singleton Pattern to activate only one application instance at the same time
+
+<br>
+
+## 🫧 Configuration
+
+The following table lists the configurable parameters for `vaules.yaml` of the etcd-autobackup chart and their default values.
+
+| Parameter                            | Description                                                  | Default                      |
+| ------------------------------------ | ------------------------------------------------------------ | ---------------------------- |
+| `etcd.cert_path` (required)          | Value of the directory path containing `ca.crt`, `server.crt`, `server.key`. | `/etc/kubernetes/pki/etcd/ ` |
+| `etcd.endpoint` (required)           | Value of endpoint of etcd. This must contain port number and must be a private IP. | none                         |
+| `cloudProvider` (required)           | The cloud provider where you want to save the snapshot. You can choose from `aws`, `oci` or `ncp`. | `oci`                        |
+| `oci.user_ocid`                      | If you choose oci, value of user ocid. <br> `ocid1.user.oci1..xxxxxxx` | none                         |
+| `oci.tenancy_ocid`                   | If you choose oci, value of tenancy ocid. `ocid1.tenancy.oc1..xxxxxxx` | none                         |
+| `oci.api_key_path`                   | If you choose oci, value of the path of oci api key. This must exist on the master node. Write the path from the master node. | none                         |
+| `oci.bucket_region`                  | If you choose oci, value of bucket region.                   | none                         |
+| `oci.namespace`                      | If you choose oci, value of namsapce.                        | none                         |
+| `aws.access_key_id`                  | If you choose aws, value of access key id                    | none                         |
+| `aws.secret_access_key`              | If you choose aws, value of secret access key                | none                         |
+| `aws.region`                         | If you choose aws, value of default region for aws cli       | none                         |
+| `ncp.access_key_id`                  | If you choose ncp, value of access key id                    | none                         |
+| `ncp.secret_access_key`              | If you choose ncp, value secret access key                   | none                         |
+| `ncp.region`                         | If you choose ncp, value of default region                   | none                         |
+
+<br>
+
+## 🤖 Usage
+
+[Helm](https://helm.sh/) must be installed to use the charts. Please refer to Helm's [documentation](https://helm.sh/docs/) to get started.
+
+1. Once Helm is set up properly, add the repo as follows:
+
+```shell
+helm repo add etcd-autobackup https://jujy-oidc.github.io/etcd-autobackup-helm-repo/
+```
+
+You can then run `helm search repo etcd-autobackup` to see the charts.
+
+2. Download `values.yaml` and write it according to your convenience.
+
+```shell
+wget https://github.com/JUJY-OIDC/etcd-autobackup-helm-repo/blob/main/helm-chart/values.yaml
+```
+
+3. Specify `values.yaml` using `--values` option and install helm chart.
+
+Make sure the `values.yaml` path is clear.
+
+```shell
+helm install etcd-autobackup etcd-autobackup/etcd-autobackup --values=values.yaml
+```
+
+All objects created by helm are managed in the `etcd-autobackup` namespace.
+
+When the installation is complete, you can see that the CronJob and ConfigMap are created.
+
+<br>
+
+## ✍️ License
+
+(목표) apache or MIT
+
+<br>
 
 ## 👩🏻‍💻 Contributors
 <table>
   <tr>
-    <td align="center"><a href="https://github.com/juyoung810"><img src="https://avatars.githubusercontent.com/u/57140735?v=4" width="100px;" alt=""/><br /><sub><b>김주영</b></sub></a><br /><a>👩🏻‍🎤</a></td>
-    <td align="center"><a href="https://github.com/na3150"><img src="https://avatars.githubusercontent.com/u/64996121?v=4" width="100px;" alt=""/><br /><sub><b>성나영</b></sub></a><br /><a>👩🏻‍🎤</a></td>
-    <td align="center"><a href="https://github.com/ziwooda"><img src="https://avatars.githubusercontent.com/u/70079416?v=4" width="100px;" alt=""/><br /><sub><b>정지우</b></sub></a><br /><a>👩🏻‍🎤</a></td>
-    <td align="center"><a href="https://github.com/yugyeongh"><img src="https://avatars.githubusercontent.com/u/72396865?v=4" width="100px;" alt=""/><br /><sub><b>현유경</b></sub></a><br /><a>👩🏻‍🎤</a></td>
+    <td align="center"><a href="https://github.com/juyoung810"><img src="https://avatars.githubusercontent.com/u/57140735?v=4" width="100px;" alt=""/><br /><sub><b>김주영</b></sub></a></td>
+    <td align="center"><a href="https://github.com/na3150"><img src="https://avatars.githubusercontent.com/u/64996121?v=4" width="100px;" alt=""/><br /><sub><b>성나영</b></sub></a></td>
+    <td align="center"><a href="https://github.com/ziwooda"><img src="https://avatars.githubusercontent.com/u/70079416?v=4" width="100px;" alt=""/><br /><sub><b>정지우</b></sub></a></td>
+    <td align="center"><a href="https://github.com/yugyeongh"><img src="https://avatars.githubusercontent.com/u/72396865?v=4" width="100px;" alt=""/><br /><sub><b>현유경</b></sub></a></td>
    
   </tr>
   </table>
+
+
+
+
+
+
+
+
+
