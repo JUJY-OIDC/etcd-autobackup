@@ -4,6 +4,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: etcd-backup-configmap-oci
+  namespace: etcd-autobackup
 data:
   test.sh: |
     #!/bin/sh

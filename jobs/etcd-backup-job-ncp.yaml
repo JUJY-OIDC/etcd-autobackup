@@ -4,6 +4,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: ncp-etcd-backup-job
+  namespace: etcd-autobackup
 spec:
   ttlSecondsAfterFinished: 600
   template:
