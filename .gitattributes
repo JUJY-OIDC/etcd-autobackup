@@ -1,2 +1,6 @@
 *.yml linguist-detectable=true
 *.yaml linguist-detectable=true
+
+Dockerfile-oci linguist-language=Dockerfile
+Dockerfile-ncp linguist-language=Dockerfile
+Dockerfile-aws linguist-language=Dockerfile
