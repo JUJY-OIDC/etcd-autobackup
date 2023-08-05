@@ -1,0 +1,12 @@
+# base image
+FROM ubuntu:20.04
+
+# avoid interaction
+ARG DEBIAN_FRONTEND=noninteractive
+
+WORKDIR /
+
+# custom script
+RUN apt-get update && apt-get install -y git golang curl etcd-client
+
+RUN apt install -y awscli
