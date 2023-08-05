@@ -1,5 +1,3 @@
-{{- if eq .Values.cloudProvider "oci" }}
-
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -8,7 +6,7 @@ spec:
   ttlSecondsAfterFinished: 600
   template:
     spec:
-      nodeSelector: 
+      nodeSelector:
         node-role.kubernetes.io/control-plane: ''
       tolerations:
         - key: node-role.kubernetes.io/control-plane
@@ -21,11 +19,11 @@ spec:
           image: na3150/jujy-etcd-custom:latest
           command: ['sh', '/scripts/test.sh']
           volumeMounts:
-            - name: script-volume #confimap script 
+            - name: script-volume
               mountPath: /scripts
-            - name: cert-hostpath #etcd certification
+            - name: cert-hostpath
               mountPath: /cert
-            - name: key-hostpath #oci-cli key
+            - name: key-hostpath
               mountPath: /oci-key
       restartPolicy: Never
       volumes:
@@ -34,10 +32,8 @@ spec:
             name: etcd-backup-configmap-oci
         - name: cert-hostpath
           hostPath:
-            path: {{ .Values.etcd.cert_path }}
+            path: /etc/kubernetes/pki/etcd/
         - name: key-hostpath
           hostPath:
-            path: {{ .Values.oci.api_key_path }}
+            path: /root/oci-key
   backoffLimit: 3
-
-  {{- end }}

@@ -9,7 +9,7 @@ deploy_api_client = client.AppsV1Api() # AppsV1API 객체 생성
 
 w_api = watch.Watch()   # watch api 객체 생성
 k8s_client = kubernetes_client.ApiClient()  # load kubernetes client
-job_yaml_file = "../PROVIDER-etcd-backup-job.yaml"
+job_yaml_file = "../jobs/etcd-backup-job-PROVIDER.yaml"
 
 def updateJobName(job_manifest):
     timestamp = str(int(time.time()))
