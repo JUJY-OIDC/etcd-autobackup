@@ -1,9 +1,9 @@
-import yaml
+import time, yaml
 from kubernetes import client, config, watch, utils
 from kubernetes import client as kubernetes_client
 
 # k8s 연결 인증 정보 불러오기
-config.load_kube_config()   # 쿠버네티스 클러스터 연결i
+config.load_kube_config()   # 쿠버네티스 클러스터 연결
 api_client = client.CoreV1Api()   # CoreV1API 객체 생성
 deploy_api_client = client.AppsV1Api() # AppsV1API 객체 생성
 
@@ -11,9 +11,15 @@ w_api = watch.Watch()   # watch api 객체 생성
 k8s_client = kubernetes_client.ApiClient()  # load kubernetes client
 job_yaml_file = "../jobs/etcd-backup-job-PROVIDER.yaml"
 
+def updateJobName(job_manifest):
+    timestamp = str(int(time.time()))
+    job_manifest['metadata']['name'] = f"PROVIDER-etcd-backup-job-{timestamp}"
+
 def jobTriggerEvent(ns):
     with open(job_yaml_file) as f:
         job_manifest = yaml.safe_load(f)
+
+    updateJobName(job_manifest)
 
     # deploy an object with yaml file
     utils.create_from_yaml(k8s_client, yaml_objects=[job_manifest], namespace=ns)
