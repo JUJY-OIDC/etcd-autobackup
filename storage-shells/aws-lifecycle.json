@@ -7,12 +7,12 @@
       "Status": "Enabled",
       "Transitions": [
         {
-          "Days": 60,
+          "Days": 7,
           "StorageClass": "GLACIER"
         }
       ],
       "Expiration": {
-        "Days": 180
+        "Days": 15
       },
       "ID": "aws-s3-rule"
     }
