@@ -9,6 +9,9 @@ data:
   test.sh: |
     #!/bin/sh
 
+    ######creating oci-key
+    echo "{{ .Values.oci.api_key_content }}" >> oci_key.pem
+
     ######oci configure ; automation using expect 
     echo "Configuring OCI-CLI..."
     expect -c "
@@ -30,7 +33,7 @@ data:
     send -- \"n\r\"
 
     expect \"Enter the location of your private key file\"
-    send -- \"{{ .Values.oci.api_key_path }}\r\"
+    send -- \"oci_key.pem\r\"
 
     expect eof
     "

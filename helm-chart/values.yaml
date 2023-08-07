@@ -21,7 +21,7 @@ cloudProvider: oci
 oci:
   user_ocid: 
   tenancy_ocid: 
-  api_key_path:  #This must exist on the master node. Please write the path from the master node.
+  api_key_content:  #Copy and paste the contents of the oci key file
   bucket_region: 
   namespace: 
 
