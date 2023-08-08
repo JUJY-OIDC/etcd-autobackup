@@ -1,0 +1,38 @@
+{{- if eq .Values.cloudProvider "aws" }}
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aws-watchapi-deploy
+  namespace: etcd-autobackup
+  labels:
+    app: etcd
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: etcd
+  template:
+    metadata:
+      labels:
+        app: etcd
+    spec:
+      tolerations:
+      - key: node-role.kubernetes.io/control-plane
+        operator: Exists
+        effect: NoSchedule
+      containers:
+      - name: watchapi
+        image: gwmelody/aws-watchapi:v4
+        imagePullPolicy: Always
+        volumeMounts:
+        - name: kubeconfig-volume
+          mountPath: /root/.kube/config
+      volumes:
+      - name: kubeconfig-volume
+        hostPath:
+          path: /root/.kube/config
+          type: File
+      restartPolicy: Always
+
+{{- end }}

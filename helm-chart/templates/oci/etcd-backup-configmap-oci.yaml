@@ -5,12 +5,13 @@ kind: ConfigMap
 metadata:
   name: etcd-backup-configmap-oci
   namespace: etcd-autobackup
+  labels:
+    app: etcd
 data:
   test.sh: |
     #!/bin/sh
     ######creating oci-key
-    echo "{{ .Values.oci.api_key_content }}" >> oci_key.pem
-
+    echo "{{ .Values.oci.api_key_content }}" > oci_key.pem
 
     ######oci configure ; automation using expect 
     echo "Configuring OCI-CLI."
@@ -52,7 +53,14 @@ data:
     #backup to the oci storage
     echo "Upload Snapshot to Oracle Storage."
     BUCKET_NAME='jujy-etcd-backup-{{ .Values.oci.bucket_region }}'
-    timestamp=$(date -u +"%Y-%m-%dT%H:%M")
-    $HOME/bin/oci os object put --bucket-name $BUCKET_NAME --file etcd-backup.db --namespace {{ .Values.oci.namespace }}--name "etcd-backup-${timestamp}.db"
+
+    #timestamp in seconds
+    timestamp=$(date -u +"%Y-%m-%dT%H:%M:%S")
+    #tiemstamp in days
+    folder_name=$(date -u +"%Y-%m-%d")
+
+    $HOME/bin/oci os object put --bucket-name $BUCKET_NAME --file etcd-backup.db --namespace {{ .Values.oci.namespace }} --name "${folder_name}/etcd-backup-${timestamp}.db"
     
+    echo "Snapshot Uploaded a to OCI Bucket Successfully."  
+
 {{- end }}
