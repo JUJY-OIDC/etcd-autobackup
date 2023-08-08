@@ -5,6 +5,8 @@ kind: ConfigMap
 metadata:
   name: etcd-backup-configmap-aws
   namespace: etcd-autobackup
+  labels:
+    app: etcd
 data:
   test.sh: |
     #!/bin/sh
@@ -53,8 +55,11 @@ data:
     ETCDCTL_API=3 etcdctl snapshot save --endpoints={{ .Values.etcd.endpoint }} --cacert=/cert/ca.crt  --cert=/cert/server.crt  --key=/cert/server.key  etcd-backup.db --debug
     ETCDCTL_API=3 etcdctl --write-out=table snapshot status etcd-backup.db
 
-    #backup to the oci storage
-    timestamp=$(date -u +"%Y-%m-%dT%H:%M")
-    aws s3 cp /etcd-backup.db s3://$BUCKET_NAME/etcd-backup-${timestamp}.db
+    #timestamp in seconds
+    timestamp=$(date -u +"%Y-%m-%dT%H:%M:%S")
+    #tiemstamp in days
+    folder_name=$(date -u +"%Y-%m-%d")
+
+    aws s3 cp /etcd-backup.db s3://$BUCKET_NAME/${folder_name}/etcd-backup-${timestamp}.db
 
 {{- end }}
