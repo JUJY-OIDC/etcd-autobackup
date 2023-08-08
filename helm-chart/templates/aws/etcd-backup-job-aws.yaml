@@ -1,12 +1,10 @@
-{{- if eq .Values.cloudProvider "aws" }}
-
 apiVersion: batch/v1
 kind: Job
 metadata:
   name: aws-etcd-backup-job
   namespace: etcd-autobackup
 spec:
-  ttlSecondsAfterFinished: 600
+  ttlSecondsAfterFinished: 120
   template:
     spec:
       nodeSelector:
@@ -35,5 +33,3 @@ spec:
           hostPath:
             path: /etc/kubernetes/pki/etcd/
   backoffLimit: 3
-
-{{- end }}

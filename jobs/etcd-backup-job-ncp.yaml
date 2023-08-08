@@ -1,12 +1,10 @@
-{{- if eq .Values.cloudProvider "ncp" }}
-
 apiVersion: batch/v1
 kind: Job
 metadata:
   name: ncp-etcd-backup-job
   namespace: etcd-autobackup
 spec:
-  ttlSecondsAfterFinished: 600
+  ttlSecondsAfterFinished: 120
   template:
     spec:
       nodeSelector:
@@ -33,7 +31,5 @@ spec:
             name: etcd-backup-configmap-ncp
         - name: cert-hostpath
           hostPath:
-            path: {{ .Values.etcd.cert_path }}
+            path: /etc/kubernetes/pki/etcd/
   backoffLimit: 3
-
-  {{- end }}
