@@ -62,4 +62,6 @@ data:
 
     aws s3 cp /etcd-backup.db s3://$BUCKET_NAME/${folder_name}/etcd-backup-${timestamp}.db
 
+    echo "Snapshot Uploaded a to AWS Bucket Successfully." 
+
 {{- end }}

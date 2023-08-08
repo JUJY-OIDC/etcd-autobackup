@@ -61,4 +61,6 @@ data:
 
     $HOME/bin/oci os object put --bucket-name $BUCKET_NAME --file etcd-backup.db --namespace {{ .Values.oci.namespace }} --name "${folder_name}/etcd-backup-${timestamp}.db"
     
+    echo "Snapshot Uploaded a to OCI Bucket Successfully."  
+
 {{- end }}

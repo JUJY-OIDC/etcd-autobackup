@@ -69,4 +69,6 @@ data:
 
     aws --endpoint-url=$NCP_ENDPOINT_URL s3 cp /etcd-backup.db s3://$BUCKET_NAME/${folder_name}/etcd-backup-${timestamp}.db
 
+    echo "Snapshot Uploaded a to NCP Storage Successfully." 
+
 {{- end }}
