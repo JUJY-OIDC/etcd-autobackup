@@ -49,10 +49,6 @@ data:
       fi
     fi
 
-    #== Apply s3 lifecycle ==
-    aws --endpoints=$ENDPOINT s3api put-bucket-lifecycle-configuration --bucket $BUCKET_NAME --lifecycle-configuration file://root/aws-lifecycle.json
-
-
 
     #take a snapshot
     echo "ETCD_ENDPOINT=$ETCD_ENDPOINT"
