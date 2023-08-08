@@ -24,8 +24,6 @@ spec:
               mountPath: /scripts
             - name: cert-hostpath #etcd certification
               mountPath: /cert
-            - name: key-hostpath #oci-cli key
-              mountPath: /oci-key
       restartPolicy: Never
       volumes:
         - name: script-volume
